@@ -4,8 +4,6 @@ import app from "./app";
 
 let server: Server;
 
-
-
 const startServer = async () => {
   try {
     await mongoose.connect(
@@ -23,3 +21,32 @@ const startServer = async () => {
 
 startServer();
 
+process.on("unhandledRejection", () => {
+  console.log("unhandled rejection detected.... Server is shutting down");
+
+  if (server) {
+    server.close(() => {
+      process.exit(1);
+    });
+  }
+});
+
+process.on("uncaughtException", () => {
+  console.log("Uncaught exception detected.... Server is shutting down");
+
+  if (server) {
+    server.close(() => {
+      process.exit(1);
+    });
+  }
+});
+
+process.on("SIGTERM", () => {
+  console.log("Signal recieved ... Server is shutting down");
+
+  if (server) {
+    server.close(() => {
+      process.exit(1);
+    });
+  }
+});
