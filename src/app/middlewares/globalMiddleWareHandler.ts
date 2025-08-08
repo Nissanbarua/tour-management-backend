@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { envVars } from "../../config/env";
+import AppError from "../errorHelpers/appError";
 
 export const globalErrorHandler = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -9,8 +10,16 @@ export const globalErrorHandler = (
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   next: NextFunction
 ) => {
-  const statusCode = 500;
-  const message = `Somthing Went Wrong ${err.message}`;
+  let statusCode = 500;
+  let message = "Somthing Went Wrong!!";
+
+  if (err instanceof AppError) {
+    statusCode = err.statusCode;
+    message = err.message;
+  } else if (err instanceof Error) {
+    statusCode = 500;
+    message = err.message;
+  }
 
   res.status(statusCode).json({
     success: false,
