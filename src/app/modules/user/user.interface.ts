@@ -26,9 +26,9 @@ export interface IUser {
   phone?: string;
   isDeleted?: string;
   isActive?: IsActive;
-  isVerified?: string;
+  isVerified?: boolean;
   role: Role;
   auths: IAuthProvider[];
-  bookings: Types.ObjectId[];
-  guide: Types.ObjectId[];
+  bookings?: Types.ObjectId[];
+  guide?: Types.ObjectId[];
 }
