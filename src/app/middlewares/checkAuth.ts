@@ -14,14 +14,18 @@ export const checkAuth =
         throw new AppError(403, "No token rececived");
       }
 
-      const verifiedToken = verifyToken(accessToken, envVars.JWT_ACCESS_SECRET) as JwtPayload
+      const verifiedToken = verifyToken(
+        accessToken,
+        envVars.JWT_ACCESS_SECRET
+      ) as JwtPayload;
       // if (!verifiedToken) {
       //   throw new AppError(403, "You are not permitted");
       // }
 
-   if (!authRoles.includes(verifiedToken.role)) {
-      throw new AppError(403, "You are not Authorized to view this page");
-   }
+      if (!authRoles.includes(verifiedToken.role)) {
+        throw new AppError(403, "You are not Authorized to view this page");
+      }
+      req.user = verifiedToken;
     } catch (error) {
       next(error);
     }
