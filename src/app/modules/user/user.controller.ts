@@ -4,6 +4,7 @@ import { userService } from "./user.service";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendRespone } from "../../utils/sendResponse";
 
+
 // const createUser = async (req: Request, res: Response, next: NextFunction) => {
 //   try {
 //     const user = await userService.createUser(req.body);
@@ -22,14 +23,26 @@ const createUser = catchAsync(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async (req: Request, res: Response, next: NextFunction) => {
     const user = await userService.createUser(req.body);
-    // res
-    //   .status(httpstatus.CREATED)
-    //   .json({ message: "User created successfully", user });
-
     sendRespone(res, {
       success: true,
       statusCode: httpstatus.CREATED,
       message: "Create user successfully",
+      data: user,
+    });
+  }
+);
+const updateUser = catchAsync(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.params.id;
+    const verifiedToken = req.user;
+    const payload = req.body;
+    const user = await userService.updateUser(userId, payload, verifiedToken);
+
+    sendRespone(res, {
+      success: true,
+      statusCode: httpstatus.CREATED,
+      message: "User Updated successfully",
       data: user,
     });
   }
@@ -52,4 +65,5 @@ const getAllUsers = catchAsync(
 export const userController = {
   createUser,
   getAllUsers,
+  updateUser,
 };
