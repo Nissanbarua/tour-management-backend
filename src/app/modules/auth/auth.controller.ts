@@ -47,8 +47,31 @@ const getNewAccessToken = catchAsync(
     });
   }
 );
+const logout = catchAsync(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async (req: Request, res: Response, next: NextFunction) => {
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+    });
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+    });
+
+    sendRespone(res, {
+      success: true,
+      statusCode: httpstatus.OK,
+      message: "User Logged out succesfully",
+      data: null,
+    });
+  }
+);
 
 export const AuthControllers = {
   credentialLogin,
   getNewAccessToken,
+  logout,
 };
