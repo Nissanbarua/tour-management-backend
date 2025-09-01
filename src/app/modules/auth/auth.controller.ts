@@ -4,21 +4,14 @@ import httpstatus from "http-status-codes";
 import { sendRespone } from "../../utils/sendResponse";
 import { AuthServices } from "./auth.service";
 import AppError from "../../errorHelpers/appError";
+import { setAuthCookie } from "../../utils/setCookie";
 
 const credentialLogin = catchAsync(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async (req: Request, res: Response, next: NextFunction) => {
     const loginInfo = await AuthServices.credentialLogin(req.body);
 
-    res.cookie("accessToken", loginInfo.accessToken, {
-      httpOnly: true,
-      secure: true,
-    });
-
-    res.cookie("refreshToken", loginInfo.refreshToken, {
-      httpOnly: true,
-      secure: false,
-    });
+    setAuthCookie(res, loginInfo);
 
     sendRespone(res, {
       success: true,
@@ -40,7 +33,11 @@ const getNewAccessToken = catchAsync(
       );
     }
 
-    const tokenInfo = await AuthServices.getNewAccessToken(refreshToken);
+    const tokenInfo = await AuthServices.getNewAccessToken(
+      refreshToken as string
+    );
+
+    setAuthCookie(res, tokenInfo.accessToken);
 
     sendRespone(res, {
       success: true,
