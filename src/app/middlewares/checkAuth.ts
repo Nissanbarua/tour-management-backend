@@ -3,6 +3,9 @@ import AppError from "../errorHelpers/appError";
 import { envVars } from "../../config/env";
 import { verifyToken } from "../utils/jwt";
 import { JwtPayload } from "jsonwebtoken";
+import { User } from "../modules/user/user.model";
+import httpStatus from "http-status-codes";
+import { IsActive } from "../modules/user/user.interface";
 
 export const checkAuth =
   (...authRoles: string[]) =>
@@ -18,6 +21,25 @@ export const checkAuth =
         accessToken,
         envVars.JWT_ACCESS_SECRET
       ) as JwtPayload;
+
+      const isUserExist = await User.findOne({ email: verifiedToken.email });
+
+      if (!isUserExist) {
+        throw new AppError(httpStatus.BAD_REQUEST, "email Doesn't exist");
+      }
+      if (
+        isUserExist.isActive === IsActive.BLOCKED ||
+        isUserExist.isActive === IsActive.INACTIVE
+      ) {
+        throw new AppError(
+          httpStatus.BAD_REQUEST,
+          `user is ${isUserExist.isActive}`
+        );
+      }
+      if (isUserExist.isDeleted) {
+        throw new AppError(httpStatus.BAD_REQUEST, "User is Deleted");
+      }
+
       // if (!verifiedToken) {
       //   throw new AppError(403, "You are not permitted");
       // }
@@ -26,6 +48,7 @@ export const checkAuth =
         throw new AppError(403, "You are not Authorized to view this page");
       }
       req.user = verifiedToken;
+      next();
     } catch (error) {
       next(error);
     }
