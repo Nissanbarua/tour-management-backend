@@ -8,6 +8,7 @@ import { envVars } from "./env";
 import { User } from "../app/modules/user/user.model";
 import { Role } from "../app/modules/user/user.interface";
 
+
 passport.use(
   new GoogleStrategy(
     {
@@ -45,9 +46,25 @@ passport.use(
         }
         return done(null, user);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.log("google auth error", error);
         return done(error);
       }
     }
   )
 );
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+passport.serializeUser((user: any, done: (err: any, id?: unknown) => void) => {
+  done(null, user._id);
+});
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+passport.deserializeUser(async (id: string, done: any) => {
+  try {
+    const user = await User.findById(id);
+    done(null, user);
+  } catch (error) {
+    done(error);
+  }
+});
