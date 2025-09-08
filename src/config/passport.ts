@@ -1,9 +1,5 @@
 import passport from "passport";
-import {
-  Strategy as GoogleStrategy,
-  Profile,
-  VerifyCallback,
-} from "passport-google-oauth20";
+import { Strategy as GoogleStrategy, Profile } from "passport-google-oauth20";
 import { envVars } from "./env";
 import { User } from "../app/modules/user/user.model";
 import { Role } from "../app/modules/user/user.interface";
@@ -16,12 +12,25 @@ passport.use(
       usernameField: "email",
       passwordField: "password",
     },
-    async (email: string, password: string, done: VerifyCallback) => {
+    async (email: string, password: string, done) => {
       try {
         const isUserExist = await User.findOne({ email });
 
         if (!isUserExist) {
           return done(null, false, { message: "User Doesn't exist" });
+        }
+
+        const isgoogleAuthenticated = isUserExist.auths.some(
+          (providerObjects) => {
+            providerObjects.provider == "google";
+          }
+        );
+
+        if (isgoogleAuthenticated) {
+          return done(null, false, {
+            message:
+              "You are login with Google. If you want to login with credential at first you need to set your password",
+          });
         }
         const isPasswordMatched = await bcryptjs.compare(
           password as string,
@@ -29,8 +38,9 @@ passport.use(
         );
 
         if (!isPasswordMatched) {
-          return done(null, false, { message: "Password Doesn't exist" });
+          return done(null, false, { message: "Password Doesn't match" });
         }
+        return done(null, isUserExist);
       } catch (error) {
         console.log(error);
         done(error);
