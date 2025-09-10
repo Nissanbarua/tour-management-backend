@@ -21,12 +21,10 @@ passport.use(
         }
 
         const isgoogleAuthenticated = isUserExist.auths.some(
-          (providerObjects) => {
-            providerObjects.provider == "google";
-          }
+          (providerObjects) => providerObjects.provider === "google"
         );
 
-        if (isgoogleAuthenticated) {
+        if (isgoogleAuthenticated && !isUserExist.password) {
           return done(null, false, {
             message:
               "You are login with Google. If you want to login with credential at first you need to set your password",
@@ -42,7 +40,7 @@ passport.use(
         }
         return done(null, isUserExist);
       } catch (error) {
-        console.log(error);
+        // console.log(error);
         done(error);
       }
     }
@@ -60,7 +58,8 @@ passport.use(
       accessToken: string,
       refreshToken: string,
       profile: Profile,
-      done: VerifyCallback
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      done: any
     ) => {
       try {
         const email = profile.emails?.[0].value;
@@ -87,7 +86,7 @@ passport.use(
         return done(null, user);
       } catch (error) {
         // eslint-disable-next-line no-console
-        console.log("google auth error", error);
+        // console.log("google auth error", error);
         return done(error);
       }
     }
