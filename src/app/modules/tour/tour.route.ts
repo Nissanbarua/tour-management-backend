@@ -1,4 +1,13 @@
+import express from "express"
+import { TourController } from "./tour.controller";
+import { checkAuth } from "../../middlewares/checkAuth";
+import { Role } from "../user/user.interface";
+import { validateRequest } from "../../middlewares/validateRequest";
+import { createTourTypeZodSchema, createTourZodSchema, updateTourZodSchema } from "./tour.validation";
+
+
 const router = express.Router();
+
 
 /* ------------------ TOUR TYPE ROUTES -------------------- */
 router.get("/tour-types", TourController.getAllTourTypes);
