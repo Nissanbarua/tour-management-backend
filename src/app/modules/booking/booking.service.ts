@@ -13,49 +13,73 @@ const getTransactionId = () => {
 
 const createBooking = async (payload: Partial<IBooking>, userId: string) => {
   const transactionId = getTransactionId();
-  const user = await User.findById(userId);
 
-  if (!user?.phone || !user?.address) {
-    throw new AppError(
-      httpstatus.BAD_REQUEST,
-      "Please update your profile to book a tour"
-    );
-  }
-  const tour = await Tour.findById(payload.tour).select("costFrom");
-  if (!tour?.costFrom) {
-    throw new AppError(httpstatus.BAD_REQUEST, "No costfrom  found");
-  }
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const amount = Number(tour.costFrom) * Number(payload.guestCount!);
+  const session = await Booking.startSession();
+  session.startTransaction();
 
-  const booking = await Booking.create({
-    user: userId,
-    status: BOOKING_STATUS.PENDING,
-    ...payload,
-  });
+  try {
+    const user = await User.findById(userId);
 
-  const payment = await Payment.create({
-    booking: booking._id,
-    status: PAYMENT_STATUS.UNPAID,
-    transactionId: transactionId,
-    amount: amount,
-  });
-
-  const updatedBooking = await Booking.findByIdAndUpdate(
-    booking._id,
-    {
-      payment: payment._id,
-    },
-    {
-      new: true,
-      runValidators: true,
+    if (!user?.phone || !user?.address) {
+      throw new AppError(
+        httpstatus.BAD_REQUEST,
+        "Please update your profile to book a tour"
+      );
     }
-  )
-    .populate("user", "name email phone address")
-    .populate("tour", "title costFrom")
-    .populate("payment");
+    const tour = await Tour.findById(payload.tour).select("costFrom");
+    if (!tour?.costFrom) {
+      throw new AppError(httpstatus.BAD_REQUEST, "No costfrom  found");
+    }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const amount = Number(tour.costFrom) * Number(payload.guestCount!);
 
-  return updatedBooking;
+    const booking = await Booking.create(
+      [
+        {
+          user: userId,
+          status: BOOKING_STATUS.PENDING,
+          ...payload,
+        },
+      ],
+      { session }
+    );
+
+    const payment = await Payment.create(
+      [
+        {
+          booking: booking[0]._id,
+          status: PAYMENT_STATUS.UNPAID,
+          transactionId: transactionId,
+          amount: amount,
+        },
+      ],
+      { session }
+    );
+
+    const updatedBooking = await Booking.findByIdAndUpdate(
+      booking[0]._id,
+      {
+        payment: payment[0]._id,
+      },
+      {
+        new: true,
+        runValidators: true,
+        session,
+      }
+    )
+      .populate("user", "name email phone address")
+      .populate("tour", "title costFrom")
+      .populate("payment");
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return updatedBooking;
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
 };
 
 export const BookingService = {
