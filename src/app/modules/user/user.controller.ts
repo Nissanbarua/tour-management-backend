@@ -2,8 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import httpstatus from "http-status-codes";
 import { userService } from "./user.service";
 import { catchAsync } from "../../utils/catchAsync";
-import { sendRespone } from "../../utils/sendResponse";
-
+import { sendResponse } from "../../utils/sendResponse";
 
 // const createUser = async (req: Request, res: Response, next: NextFunction) => {
 //   try {
@@ -23,7 +22,7 @@ const createUser = catchAsync(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async (req: Request, res: Response, next: NextFunction) => {
     const user = await userService.createUser(req.body);
-    sendRespone(res, {
+    sendResponse(res, {
       success: true,
       statusCode: httpstatus.CREATED,
       message: "Create user successfully",
@@ -37,9 +36,10 @@ const updateUser = catchAsync(
     const userId = req.params.id;
     const verifiedToken = req.user;
     const payload = req.body;
-    const user = await userService.updateUser(userId, payload, verifiedToken);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const user = await userService.updateUser(userId, payload, verifiedToken!);
 
-    sendRespone(res, {
+    sendResponse(res, {
       success: true,
       statusCode: httpstatus.CREATED,
       message: "User Updated successfully",
@@ -52,7 +52,7 @@ const getAllUsers = catchAsync(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async (req: Request, res: Response, next: NextFunction) => {
     const result = await userService.getAllusers();
-    sendRespone(res, {
+    sendResponse(res, {
       success: true,
       statusCode: httpstatus.OK,
       message: "All users retrive successfully",

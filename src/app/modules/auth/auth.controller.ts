@@ -2,7 +2,6 @@
 import { NextFunction, Request, Response } from "express";
 import { catchAsync } from "../../utils/catchAsync";
 import httpstatus from "http-status-codes";
-import { sendRespone } from "../../utils/sendResponse";
 import { AuthServices } from "./auth.service";
 import AppError from "../../errorHelpers/appError";
 import { setAuthCookie } from "../../utils/setCookie";
@@ -10,6 +9,7 @@ import { JwtPayload } from "jsonwebtoken";
 import { envVars } from "../../../config/env";
 import passport from "passport";
 import { creatUserToken } from "../../utils/userTokens";
+import { sendResponse } from "../../utils/sendResponse";
 
 const credentialLogin = catchAsync(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -32,7 +32,7 @@ const credentialLogin = catchAsync(
 
       const { password: pass, ...rest } = user.toObject();
 
-      sendRespone(res, {
+      sendResponse(res, {
         success: true,
         statusCode: httpstatus.OK,
         message: "User Logged in succesfully",
@@ -63,7 +63,7 @@ const getNewAccessToken = catchAsync(
 
     setAuthCookie(res, tokenInfo.accessToken);
 
-    sendRespone(res, {
+    sendResponse(res, {
       success: true,
       statusCode: httpstatus.OK,
       message: "User Logged in succesfully",
@@ -85,7 +85,7 @@ const logout = catchAsync(
       sameSite: "lax",
     });
 
-    sendRespone(res, {
+    sendResponse(res, {
       success: true,
       statusCode: httpstatus.OK,
       message: "User Logged out succesfully",
@@ -105,7 +105,7 @@ const resetPassword = catchAsync(
       decodedToken as JwtPayload
     );
 
-    sendRespone(res, {
+    sendResponse(res, {
       success: true,
       statusCode: httpstatus.OK,
       message: "Password Change succesfully",
